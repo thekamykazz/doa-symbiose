@@ -1,103 +1,315 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DOA Rapports</title>
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-image: url('https://img.gta5-mods.com/q95/images/doa/267818-20210823154240_1.jpg');
-            background-size: cover;
-            background-position: center;
-            margin: 0;
-            font-family: Arial, sans-serif;
-            color: white;
-        }
-        .container {
-            background: rgba(0, 0, 0, 0.8);
-            padding: 20px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 800px;
-            text-align: center;
-        }
-        .container h2 {
-            margin-bottom: 20px;
-        }
-        .container textarea, .container input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: none;
-        }
-        .container button {
-            padding: 10px 20px;
-            margin-top: 10px;
-            border: none;
-            border-radius: 5px;
-            background: #007bff;
-            color: white;
-            cursor: pointer;
-        }
-        .container button:hover {
-            background: #0056b3;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920, height=1080, initial-scale=1.0">
+  <title>DOA - Rapports</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #020c0f 0%, #000 100%);
+      font-family: 'Consolas', 'Courier New', monospace;
+      color: #00fff2;
+    }
+
+    /* --- FOND ET SCAN --- */
+    body::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: url('https://img.gta5-mods.com/q95/images/doa/267818-20210823154240_1.jpg');
+      background-size: cover;
+      background-position: center;
+      opacity: 0.25;
+      filter: blur(3px);
+      z-index: -2;
+    }
+
+    body::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0,255,255,0.04),
+        rgba(0,255,255,0.04) 1px,
+        transparent 1px,
+        transparent 2px
+      );
+      z-index: -1;
+      animation: scan 6s linear infinite;
+    }
+    @keyframes scan {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(100%); }
+    }
+
+    /* --- ÉCRAN DE CHARGEMENT --- */
+    #bootScreen {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 10, 15, 0.96);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: #00ffff;
+      font-size: 1.1em;
+      text-shadow: 0 0 8px #00ffff;
+      z-index: 10;
+    }
+
+    .boot-line {
+      opacity: 0;
+      animation: appear 0.6s forwards;
+    }
+
+    @keyframes appear {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* --- INTERFACE PRINCIPALE --- */
+    .header {
+      width: 100%;
+      background: rgba(0, 30, 40, 0.8);
+      padding: 10px 20px;
+      box-shadow: 0 0 15px #00ffff55 inset;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #00ffff33;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1.5em;
+      color: #00ffff;
+      text-shadow: 0 0 8px #00ffffaa;
+      letter-spacing: 2px;
+    }
+
+    .status {
+      font-size: 0.9em;
+      color: #0f0;
+      text-shadow: 0 0 5px #00ff00aa;
+      animation: blink 1.5s infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0.6; }
+    }
+
+    .terminal {
+      width: 1500px;
+      height: 750px;
+      margin: 60px auto;
+      background: rgba(0, 20, 25, 0.85);
+      border: 2px solid #00ffff33;
+      border-radius: 12px;
+      box-shadow: 0 0 25px #00ffff22, inset 0 0 8px #00ffff22;
+      padding: 40px;
+      display: none;
+    }
+
+    .terminal h2 {
+      color: #00ffff;
+      border-bottom: 1px solid #00ffff55;
+      padding-bottom: 10px;
+      margin-bottom: 25px;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+    }
+
+    textarea, input {
+      width: 100%;
+      background: rgba(0, 50, 60, 0.3);
+      border: 1px solid #00ffff33;
+      color: #00ffea;
+      padding: 12px;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      font-size: 1em;
+      outline: none;
+      transition: 0.3s;
+    }
+
+    textarea:focus, input:focus {
+      border-color: #00ffff;
+      background: rgba(0, 70, 80, 0.4);
+      box-shadow: 0 0 8px #00ffff77;
+    }
+
+    textarea {
+      resize: none;
+      height: 150px;
+    }
+
+    button {
+      background: linear-gradient(90deg, #00ffff44, #007bff55);
+      border: 1px solid #00ffff55;
+      color: white;
+      padding: 12px 25px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+    }
+
+    button:hover {
+      background: linear-gradient(90deg, #00ffff88, #007bffaa);
+      box-shadow: 0 0 10px #00ffff77;
+      transform: scale(1.03);
+    }
+
+    .photo-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: rgba(0, 40, 45, 0.4);
+      border: 1px solid #00ffff22;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    .footer {
+      text-align: center;
+      color: #007777;
+      font-size: 0.8em;
+      margin-top: 10px;
+    }
+
+    #alertBox {
+      position: fixed;
+      top: 30px;
+      right: 30px;
+      padding: 15px 25px;
+      background: rgba(0, 50, 60, 0.9);
+      border: 1px solid #00ffff77;
+      color: #00ffff;
+      border-radius: 8px;
+      display: none;
+      box-shadow: 0 0 10px #00ffff55;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h2>DOA Rapports</h2>
-        <form id="reportForm">
-            <textarea id="reportContent" placeholder="Résumé de la situation" required></textarea>
-            <input type="text" id="agentID" placeholder="Nom + Prénom + Matricule" required>
-            <button type="submit">Envoyer le rapport</button>
-        </form>
-    </div>
 
-    <script>
-        document.getElementById('reportForm').addEventListener('submit', function(event) {
-            event.preventDefault();
+  <!-- ÉCRAN DE CHARGEMENT -->
+  <div id="bootScreen">
+    <div class="boot-line" style="animation-delay:0s">> Connexion au terminal DOA...</div>
+    <div class="boot-line" style="animation-delay:1s">> Vérification des identifiants...</div>
+    <div class="boot-line" style="animation-delay:2s">> Authentification de l'agent...</div>
+    <div class="boot-line" style="animation-delay:3s">> Chargement du module de rapports...</div>
+    <div class="boot-line" style="animation-delay:4s">> Synchronisation avec le QG...</div>
+    <div class="boot-line" style="animation-delay:5s">> Terminal opérationnel ✔</div>
+  </div>
 
-            const reportContent = document.getElementById('reportContent').value;
-            const agentID = document.getElementById('agentID').value;
-            const timestamp = new Date().toLocaleString();
+  <!-- INTERFACE PRINCIPALE -->
+  <div class="header">
+    <h1>DOA // TERMINAL OPÉRATIONNEL</h1>
+    <div class="status">● CONNECTÉ</div>
+  </div>
 
-            if (reportContent && agentID) {
-                const webhookURL = "https://discordapp.com/api/webhooks/1357721774107656553/G-hBLHmJW2R3CXpGllc4fxCLxcIzWq0ERlsrSTdIZrJBQZYjFeiiXxZmYuDrjGX8We2I"; // Remplace avec ton webhook Discord
+  <div class="terminal" id="mainInterface">
+    <h2>Création d’un Rapport de Mission</h2>
+    <form id="reportForm">
+      <label>Résumé de la situation :</label>
+      <textarea id="reportContent" placeholder="Décris la situation ici..." required></textarea>
 
-                const payload = {
-                    content: `📋 **Nouveau Rapport DOA**\n👮 **Agent ID**: ${agentID}\n🕒 **Date**: ${timestamp}\n📄 **Rapport**:\n${reportContent}`
-                };
+      <label>Nom - Prénom :</label>
+      <input type="text" id="agentName" placeholder="Ex: Kamy Kazz" required>
 
-                fetch(webhookURL, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(payload)
-                }).then(response => {
-                    if (response.ok) {
-                        alert("Rapport envoyé sur Discord !");
-                        document.getElementById('reportForm').reset();
-                    } else {
-                        alert("Échec de l'envoi du rapport.");
-                    }
-                }).catch(error => {
-                    console.error("Erreur:", error);
-                    alert("Une erreur est survenue.");
-                });
-            } else {
-                alert("Veuillez remplir tous les champs.");
-            }
+      <label>Matricule :</label>
+      <input type="text" id="agentMatricule" placeholder="Ex: 01" required>
+
+      <div class="photo-section">
+        <label>Photo de la scène / suspect :</label>
+        <input type="file" id="photoFile" accept="image/*">
+        <input type="url" id="photoURL" placeholder="Ou colle un lien d’image (URL)">
+      </div>
+
+      <button type="submit">Transmettre au QG</button>
+    </form>
+    <div class="footer">Division of Operations and Analysis // Confidential Data © DOA</div>
+    <div class="footer">thekamykazz™</div>
+  </div>
+
+  <div id="alertBox">Rapport transmis ✔</div>
+
+  <script>
+    // --- Boot Screen Simulation ---
+    setTimeout(() => {
+      document.getElementById("bootScreen").style.transition = "opacity 1s";
+      document.getElementById("bootScreen").style.opacity = "0";
+      setTimeout(() => {
+        document.getElementById("bootScreen").style.display = "none";
+        document.getElementById("mainInterface").style.display = "block";
+      }, 1000);
+    }, 7000);
+
+    const alertBox = document.getElementById("alertBox");
+
+    // --- Formulaire d’envoi ---
+    document.getElementById('reportForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const content = document.getElementById('reportContent').value.trim();
+      const name = document.getElementById('agentName').value.trim();
+      const matricule = document.getElementById('agentMatricule').value.trim();
+      const file = document.getElementById('photoFile').files[0];
+      const photoURL = document.getElementById('photoURL').value.trim();
+      const timestamp = new Date().toLocaleString();
+
+      if (!content || !name || !matricule) {
+        showAlert("⚠️ Remplis tous les champs obligatoires.");
+        return;
+      }
+
+      const webhookURL = "https://discordapp.com/api/webhooks/1357721774107656553/G-hBLHmJW2R3CXpGllc4fxCLxcIzWq0ERlsrSTdIZrJBQZYjFeiiXxZmYuDrjGX8We2I";
+
+      let message = `📋 **Nouveau Rapport DOA**\n👮 **Agent:** ${name}\n🆔 **Matricule:** ${matricule}\n🕒 **Date:** ${timestamp}\n🗒️ **Situation:**\n${content}`;
+      if (photoURL) message += `\n📸 **Photo (URL):** ${photoURL}`;
+
+      const payload = { content: message };
+
+      try {
+        await fetch(webhookURL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
         });
-    </script>
+
+        // Envoi de fichier (si sélectionné)
+        if (file) {
+          const formData = new FormData();
+          formData.append("file", file);
+          await fetch(webhookURL, { method: "POST", body: formData });
+        }
+
+        showAlert("✅ Rapport transmis au QG.");
+        document.getElementById('reportForm').reset();
+      } catch (e) {
+        showAlert("❌ Erreur lors de l’envoi du rapport.");
+      }
+    });
+
+    function showAlert(msg) {
+      alertBox.textContent = msg;
+      alertBox.style.display = "block";
+      alertBox.style.opacity = "1";
+      setTimeout(() => {
+        alertBox.style.transition = "opacity 1s";
+        alertBox.style.opacity = "0";
+        setTimeout(() => alertBox.style.display = "none", 1000);
+      }, 3000);
+    }
+  </script>
 </body>
 </html>

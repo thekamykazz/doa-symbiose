@@ -5,20 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>DOA — Rapports</title>
 <style>
-/* --- MENU DEROULANT --- */
-#gangSelect {
-  background-color: #ffffff;
-  color: #000000;
-  border: 1px solid #ccc;
-  padding: 8px;
-  border-radius: 6px;
-  font-size: 0.95rem;
-}
-#gangSelect option {
-  background-color: #ffffff;
-  color: #000000;
-}
-
 /* --- VARIABLES & STYLES --- */
 :root{
   --bg:#071018; --panel:#0f1720; --muted:#b6c7d6; --accent:#ffffff; --glass: rgba(255,255,255,0.03); --white:#e6eef6;
@@ -173,23 +159,6 @@ textarea{min-height:110px;resize:vertical}
           <textarea id="photos" class="input" placeholder="https://…/evidence1.jpg, https://…/evidence2.jpg"></textarea>
         </div>
 
-        <!-- Gang -->
-        <div class="section">
-          <h2>Classification (optionnelle)</h2>
-          <label class="label">Choisir la bonne classe</label>
-          <select id="gangSelect" class="input">
-            <option value="">— Aucun —</option>
-            <option value="1438204814235537409">Black Ices</option>
-            <option value="1438183216530985031">Iron Vikings</option>
-            <option value="1438183080929001482">Locura</option>
-            <option value="1438183128295538698">The Losts</option>
-            <option value="1438204859743600721">Mayans</option>
-            <option value="1438383343258308709">Families</option>
-            <option value="1438408230479855767">Crips</option>
-            <option value="1438553691245514834">Pawnshop</option>
-          </select>
-        </div>
-
         <div style="display:flex;gap:10px;align-items:center;margin-top:8px">
           <button type="submit" class="btn">Soumettre</button>
           <div style="margin-left:auto" class="small">DOA • KAMYKAZZ™</div>
@@ -202,11 +171,10 @@ textarea{min-height:110px;resize:vertical}
   <div class="right-col">
     <div class="panel">
       <div class="meta-item"><div><div class="k">Statut</div><div class="v" id="status">Prêt</div></div><div class="small">Réseau DOA</div></div>
-      <div class="meta-item"><div><div class="k">Mode</div><div class="v">Opérationnel</div></div><div class="small">V4.0</div></div>
+      <div class="meta-item"><div><div class="k">Mode</div><div class="v">Opérationnel</div></div><div class="small">V4.1</div></div>
+      <div class="meta-item"><div><div class="k">Mise à jour</div><div class="v"></div></div><div class="small">Retrait section classification</div></div>
       <div class="meta-item"><div><div class="k">Mise à jour</div><div class="v"></div></div><div class="small">Ajustement message rapport discord</div></div>
-      <div class="meta-item"><div><div class="k">Mise à jour</div><div class="v"></div></div><div class="small">Ajout Section Classification</div></div>
       <div class="meta-item"><div><div class="k">Mise à jour</div><div class="v"></div></div><div class="small">Refonte de l'interface</div></div>
-      <div class="meta-item"><div><div class="k">Mise à jour</div><div class="v"></div></div><div class="small">Ajout zones de texte obligatoires</div></div>
     </div>
   </div>
 </div>
@@ -228,7 +196,7 @@ textarea{min-height:110px;resize:vertical}
 
 <script>
 const WEBHOOK_URL = 'https://discord.com/api/webhooks/1439738511715467416/DDM_yFCBf5HdBL_z3DxfpqFe2xBgi94vFzJL7Ns2-wKgusIU4s7au2jMXi0CWTNj6VVX';
-const LOGO_URL = 'https://i.ibb.co/twQkGPs9/DOA-logo-GTA-V.webp';
+const LOGO_URL = 'https://static.wikia.nocookie.net/gtawiki/images/8/83/DOA_logo_GTA_V.png/revision/latest?cb=20150426213246';
 let dossierNum = parseInt(localStorage.getItem('doaDossierNumber')||'1000',10);
 document.getElementById('currentDossier').textContent = `#${dossierNum}`;
 document.getElementById('bootDossier').textContent = `#${dossierNum}`;
@@ -291,10 +259,9 @@ function fetchWithTimeout(url, options={}, timeout=9000){
   return fetch(url, {...options, signal: controller.signal}).finally(()=>{ clearTimeout(id); sendAbortController = null; });
 }
 
-async function sendReport(embed, channelID){
-  const url = channelID ? `https://discord.com/api/webhooks/${channelID}` : WEBHOOK_URL;
+async function sendReport(embed){
   try {
-    const resp = await fetchWithTimeout(url,{
+    const resp = await fetchWithTimeout(WEBHOOK_URL,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify(embed)
@@ -317,7 +284,6 @@ reportForm.addEventListener('submit', async (ev)=>{
   const agent1Prenom = (document.getElementById('agent1Prenom').value||'').toUpperCase();
   const agent1Mat = (document.getElementById('agent1Matricule').value||'').toUpperCase();
   const photos = (document.getElementById('photos').value||'').split(',').map(s=>s.trim()).filter(Boolean);
-  const gangChannelID = document.getElementById('gangSelect').value;
 
   if(!nom||!prenom||!chef1||!resume||!agent1Nom||!agent1Prenom||!agent1Mat){
     alert('Remplis les champs obligatoires.');
@@ -350,15 +316,7 @@ reportForm.addEventListener('submit', async (ev)=>{
   logSend('Formatage de l\'embed...'); sendBar.style.width='36%'; await new Promise(r=>setTimeout(r,250));
   logSend('Transmission au webhook principal...'); sendBar.style.width='52%'; sendState.textContent='envoi';
 
-  // Envoi principal
-  let ok = await sendReport(embed, null);
-
-  // Envoi dans le canal du gang si défini
-  if(gangChannelID){
-    logSend('Transmission au canal du gang...');
-    const gangOk = await sendReport(embed, gangChannelID);
-    logSend(gangOk ? 'Rapport envoyé au canal du gang' : 'Échec du canal du gang');
-  }
+  const ok = await sendReport(embed);
 
   sendBar.style.width='100%'; sendState.textContent='succès';
   setTimeout(()=>sendOverlay.style.display='none',800);
@@ -380,4 +338,3 @@ cancelSend.addEventListener('click', ()=>{ if(sendAbortController) sendAbortCont
 </script>
 </body>
 </html>
-

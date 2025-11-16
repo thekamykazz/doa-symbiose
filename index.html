@@ -171,9 +171,9 @@ textarea{min-height:110px;resize:vertical}
   <div class="right-col">
     <div class="panel">
       <div class="meta-item"><div><div class="k">Statut</div><div class="v" id="status">Prêt</div></div><div class="small">Réseau DOA</div></div>
-      <div class="meta-item"><div><div class="k">Mode</div><div class="v">Opérationnel</div></div><div class="small">V4.1</div></div>
+      <div class="meta-item"><div><div class="k">Mode</div><div class="v">Opérationnel</div></div><div class="small">V4.2</div></div>
+      <div class="meta-item"><div><div class="k">Mise à jour</div><div class="v"></div></div><div class="small">Message simple (non-embed)</div></div>
       <div class="meta-item"><div><div class="k">Mise à jour</div><div class="v"></div></div><div class="small">Retrait section classification</div></div>
-      <div class="meta-item"><div><div class="k">Mise à jour</div><div class="v"></div></div><div class="small">Ajustement message rapport discord</div></div>
       <div class="meta-item"><div><div class="k">Mise à jour</div><div class="v"></div></div><div class="small">Refonte de l'interface</div></div>
     </div>
   </div>
@@ -259,12 +259,12 @@ function fetchWithTimeout(url, options={}, timeout=9000){
   return fetch(url, {...options, signal: controller.signal}).finally(()=>{ clearTimeout(id); sendAbortController = null; });
 }
 
-async function sendReport(embed){
+async function sendReport(message){
   try {
     const resp = await fetchWithTimeout(WEBHOOK_URL,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(embed)
+      body:JSON.stringify({content: message})
     },10000);
     return resp && resp.ok;
   } catch(e){ return false; }
@@ -290,33 +290,50 @@ reportForm.addEventListener('submit', async (ev)=>{
     return;
   }
 
-  const now = new Date();
-  const embed = {
-    embeds: [{
-      title: `RAPPORT — DOSSIER #${dossierNum}`,
-      color: 0x1e6fb1,
-      fields: [
-        { name: 'Suspect', value: `**${prenom} ${nom}**\nSexe: ${sexe||'N/A'}\nOrigine: ${origine||'N/A'}` },
-        { name: 'Chefs d\'accusation', value: `${chef1}${chef2?'\n'+chef2:''}${chef3?'\n'+chef3:''}` },
-        { name: 'Résumé', value: resume },
-        { name: 'Agent principal', value: `${agent1Prenom} ${agent1Nom} — [${agent1Mat}]` },
-        { name: 'Date / Heure', value: `${document.getElementById('date').value} à ${document.getElementById('heure').value}` }
-      ],
-      footer: { text: 'Drug Organisation Agency — MDT' },
-      timestamp: now.toISOString()
-    }]
-  };
-  if(LOGO_URL) embed.embeds[0].thumbnail = { url: LOGO_URL };
-  if(photos.length>0) embed.embeds[0].image = { url: photos[0] };
-  for(let i=1;i<photos.length;i++) embed.embeds.push({ image:{ url: photos[i] } });
+  // Construction du message texte
+  let message = `**═══════════════════════════════════**\n`;
+  message += `**📋 RAPPORT — DOSSIER #${dossierNum}**\n`;
+  message += `**═══════════════════════════════════**\n\n`;
+  
+  message += `**👤 SUSPECT**\n`;
+  message += `➤ Nom: **${prenom} ${nom}**\n`;
+  message += `➤ Sexe: ${sexe||'N/A'}\n`;
+  message += `➤ Origine: ${origine||'N/A'}\n\n`;
+  
+  message += `**⚖️ CHEFS D'ACCUSATION**\n`;
+  message += `➤ ${chef1}\n`;
+  if(chef2) message += `➤ ${chef2}\n`;
+  if(chef3) message += `➤ ${chef3}\n`;
+  message += `\n`;
+  
+  message += `**📝 RÉSUMÉ**\n`;
+  message += `${resume}\n\n`;
+  
+  message += `**👮 AGENT PRINCIPAL**\n`;
+  message += `➤ ${agent1Prenom} ${agent1Nom} — [${agent1Mat}]\n\n`;
+  
+  message += `**📅 DATE / HEURE**\n`;
+  message += `➤ ${document.getElementById('date').value} à ${document.getElementById('heure').value}\n\n`;
+  
+  if(photos.length > 0) {
+    message += `**📸 PREUVES**\n`;
+    photos.forEach((url, i) => {
+      message += `➤ Photo ${i+1}: ${url}\n`;
+    });
+    message += `\n`;
+  }
+  
+  message += `**═══════════════════════════════════**\n`;
+  message += `*Drug Organisation Agency — MDT*\n`;
+  message += `**═══════════════════════════════════**`;
 
   sendLogs.innerHTML=''; sendBar.style.width='0%'; sendState.textContent='préparation';
   sendOverlay.style.display='flex'; logSend('Vérification des données...');
   sendBar.style.width='18%'; await new Promise(r=>setTimeout(r,300));
-  logSend('Formatage de l\'embed...'); sendBar.style.width='36%'; await new Promise(r=>setTimeout(r,250));
+  logSend('Formatage du message...'); sendBar.style.width='36%'; await new Promise(r=>setTimeout(r,250));
   logSend('Transmission au webhook principal...'); sendBar.style.width='52%'; sendState.textContent='envoi';
 
-  const ok = await sendReport(embed);
+  const ok = await sendReport(message);
 
   sendBar.style.width='100%'; sendState.textContent='succès';
   setTimeout(()=>sendOverlay.style.display='none',800);
